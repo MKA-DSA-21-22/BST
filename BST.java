@@ -1,7 +1,7 @@
 // DSA 
 // BST class
 // 2021-2022
-
+import java.util.*;
 public class BST { // A node is a BST
 	private int element;
 	private BST left;
@@ -60,6 +60,7 @@ public class BST { // A node is a BST
 		return this;
 	}
 	private BST findMinParent() {
+		if (left == null && right == null) return null;
 		if (left != null && left.getLeft() == null) { return this;}
 		else if (left != null) { return left.findMinParent(); }
 		return this;
@@ -74,6 +75,7 @@ public class BST { // A node is a BST
 		
 	}
 	private BST findMaxParent() {
+		if (left == null && right == null) return null;
 		if (right != null && right.getRight() == null) { return this;}
 		else if (right != null) { return right.findMaxParent(); }
 		return this;
@@ -98,22 +100,29 @@ public class BST { // A node is a BST
 	private boolean remove(int item, BST parent) { // parent starts null
 		
 		// deal with removing root
-		if (!contains(item)) { return false;	}
+		if (!contains(item)) { return false; }
 		if (element == item) {
+			if (parent == null && left == null && right == null) { //this is removing the root if lone node
+				// just decided that we cant do this
+				return false;
+			}
 			if (left == null && right == null) {
-				if (item < parent.getElement()) {parent.setLeft(null);}
+				// needed to compare - possibly out of order and needed to short circuit if no left child
+				if (parent.getLeft() != null && item == parent.getLeft().getElement()) {parent.setLeft(null);} 
 				else { parent.setRight(null); }
 			} 
 			else if (right != null){ // choosing to swap with smallest on right
 				BST toSwap = right.findMin();
-				BST nextParent = right.findMinParent();
+				BST nextParent = right.findMinParent(); // needed to consider if right was a leaf
+				if (nextParent == null) nextParent = this; // in which case nextParent is this
 				this.setElement(toSwap.getElement());
-				toSwap.setElement(item);
+				toSwap.setElement(item);			
 				return toSwap.remove(item, nextParent);
 			}
 			else {
 				BST toSwap = left.findMax();
-				BST nextParent = left.findMaxParent();
+				BST nextParent = this.findMaxParent();
+				if (nextParent == null) nextParent = this;
 				this.setElement(toSwap.getElement());
 				toSwap.setElement(item);
 				return toSwap.remove(item, nextParent);
@@ -121,11 +130,12 @@ public class BST { // A node is a BST
 		}
 		else if (item < element) { return left.remove(item, this); }
 		else { return right.remove(item, this); }
+		return true;
 	}
 	
-	public int removeMin() {}
+	public int removeMin() { return 0; }
 	
-	public int removeMax() {}
+	public int removeMax() { return 0; }
 	
 	// traversals
 	private void visit() { System.out.print(element + " "); }
@@ -144,7 +154,21 @@ public class BST { // A node is a BST
 		if(right != null) { right.postOrder(); }
 		visit();
 	}
-	public void breadthFirst() {}
+	public void breadthFirst() {
+		ArrayList<BST> q = new ArrayList(); //add to enqueue, remove(0) to dequeue
+		q.add(this); 
+		while (! q.isEmpty()) {
+			BST left = q.get(0).getLeft();
+			BST right = q.get(0).getRight();
+			if (left!=null) { 
+				q.add(left); 
+			}
+			if (right!=null) { 
+				q.add(right); 
+			}
+			q.remove(0).visit();
+		}	
+	}
 	
 	
 }
